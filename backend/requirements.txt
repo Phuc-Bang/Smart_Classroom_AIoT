@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+paho-mqtt
+influxdb-client
+scikit-learn
+joblib
+numpy
+python-dateutil

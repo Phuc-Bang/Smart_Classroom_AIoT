@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom - Digital Twin</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <header class="mb-4 text-center">
+            <h1 class="fw-bold">Smart Classroom AIoT Dashboard</h1>
+            <p class="text-muted">Room A203 - Real-time Digital Twin</p>
+        </header>
+
+        <div class="row">
+            <!-- Left: Digital Twin -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4 bg-dark text-white p-3">
+                    <h5 class="mb-3">Live Digital Twin</h5>
+                    <div id="digital-twin-container" class="text-center">
+                        <svg id="classroom-svg" viewBox="0 0 800 500" class="img-fluid rounded">
+                            <!-- Floor -->
+                            <rect x="10" y="10" width="780" height="480" fill="#2c3e50" rx="10" ry="10" id="room-wall" stroke="#34495e" stroke-width="4"/>
+                            
+                            <!-- AC Unit -->
+                            <rect id="ac-unit" x="350" y="20" width="100" height="30" rx="5" fill="#95a5a6" />
+                            <text x="400" y="45" text-anchor="middle" font-size="12" fill="white">AC UNIT</text>
+
+                            <!-- Lights -->
+                            <circle id="light1" cx="200" cy="150" r="25" fill="#7f8c8d" />
+                            <circle id="light2" cx="600" cy="150" r="25" fill="#7f8c8d" />
+                            
+                            <!-- Labels -->
+                            <text x="200" y="195" text-anchor="middle" font-size="14" fill="#bdc3c7">LIGHT 1</text>
+                            <text x="600" y="195" text-anchor="middle" font-size="14" fill="#bdc3c7">LIGHT 2</text>
+
+                            <!-- Classroom Assets (Desks representation) -->
+                            <rect x="100" y="300" width="100" height="60" fill="#34495e" rx="5" />
+                            <rect x="350" y="300" width="100" height="60" fill="#34495e" rx="5" />
+                            <rect x="600" y="300" width="100" height="60" fill="#34495e" rx="5" />
+
+                            <!-- Dynamic Values -->
+                            <g transform="translate(400, 250)">
+                                <text id="temp-value" x="0" y="0" text-anchor="middle" font-size="32" font-weight="600" fill="#e74c3c">--°C</text>
+                                <text id="people-value" x="0" y="40" text-anchor="middle" font-size="20" fill="#3498db">People: --</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Bottom: Charts -->
+                <div class="card shadow-sm border-0 p-3">
+                    <h5 class="mb-3">Environment History</h5>
+                    <div style="height: 300px;">
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls & Alerts -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-4 p-3 bg-light">
+                    <h5 class="mb-4">Remote Control</h5>
+                    <div class="d-grid gap-3">
+                        <button id="btn-toggle-light" class="btn btn-warning btn-lg py-3 fw-bold">Toggle Lights</button>
+                        <button id="btn-toggle-ac" class="btn btn-info btn-lg py-3 fw-bold text-white">Toggle AC</button>
+                    </div>
+                    <hr>
+                    <div id="device-status" class="mt-2">
+                        <p class="mb-1">AC Status: <span id="ac-status-text" class="badge bg-secondary">OFF</span></p>
+                        <p class="mb-0">Light Status: <span id="light-status-text" class="badge bg-secondary">OFF</span></p>
+                    </div>
+                </div>
+
+                <div id="alert-box" class="alert alert-danger d-none animate-pulse" role="alert">
+                    <h6 class="alert-heading fw-bold">⚠️ ANOMALY DETECTED!</h6>
+                    <p id="anomaly-reason" class="small mb-0">Extreme values detected in classroom environment.</p>
+                </div>
+
+                <div class="card shadow-sm border-0 p-3">
+                    <h5 class="mb-3">System Logs</h5>
+                    <div id="log-container" class="bg-dark text-success p-2 rounded font-monospace small" style="height: 300px; overflow-y: auto;">
+                        <div>[SYSTEM] Dashboard initialized...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

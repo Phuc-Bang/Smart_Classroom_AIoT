@@ -111,30 +111,46 @@ def on_connect(client, userdata, flags, rc):
         logger.error(f"Connection failed with code {rc}")
 
 def main():
-    client = mqtt.Client()
+    # Sử dụng VERSION1 để tương thích với code hiện tại (paho-mqtt 2.x yêu cầu khai báo này)
+    try:
+        client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
+    except AttributeError:
+        # Dành cho các phiên bản paho-mqtt cũ hơn 2.0
+        client = mqtt.Client()
+        
     client.on_connect = on_connect
     
+    logger.info(f"Connecting to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}...")
     try:
         client.connect(MQTT_BROKER, MQTT_PORT, 60)
     except Exception as e:
-        logger.error(f"Could not connect to MQTT Broker: {e}")
+        logger.error(f"FATAL: Could not connect to MQTT Broker: {e}")
         return
 
     client.loop_start()
 
     try:
+        logger.info("Simulator started. Entering main loop...")
         while True:
             data = generate_sensor_data()
             payload = json.dumps(data)
-            client.publish(MQTT_TOPIC, payload)
-            logger.info(f"Published to {MQTT_TOPIC}: {payload}")
+            result = client.publish(MQTT_TOPIC, payload)
+            
+            # Kiểm tra trạng thái gửi
+            if result.rc == mqtt.MQTT_ERR_SUCCESS:
+                logger.info(f"Published to {MQTT_TOPIC}: {payload}")
+            else:
+                logger.error(f"Failed to publish message, return code: {result.rc}")
+                
             time.sleep(INTERVAL)
     except KeyboardInterrupt:
-        logger.info("Simulator stopping...")
+        logger.info("Simulator stopping by user...")
+    except Exception as e:
+        logger.error(f"Unexpected error in main loop: {e}")
     finally:
         client.loop_stop()
         client.disconnect()
-        logger.info("Done.")
+        logger.info("Simulator finished.")
 
 if __name__ == "__main__":
     main()

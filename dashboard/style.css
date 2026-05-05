@@ -1,0 +1,61 @@
+body {
+    background-color: #f4f7f6;
+    font-family: 'Outfit', sans-serif;
+}
+
+#classroom-svg {
+    background-color: #1a2634;
+    max-height: 500px;
+    transition: all 0.5s ease;
+}
+
+/* Light Effects */
+.light-on {
+    fill: #f1c40f !important;
+    filter: drop-shadow(0 0 15px rgba(241, 196, 15, 0.8));
+}
+
+/* AC Effects */
+.ac-on {
+    fill: #3498db !important;
+    filter: drop-shadow(0 0 10px rgba(52, 152, 219, 0.6));
+}
+
+/* Anomaly Animation */
+@keyframes pulse-red {
+    0% { stroke: #34495e; stroke-width: 4; }
+    50% { stroke: #e74c3c; stroke-width: 10; }
+    100% { stroke: #34495e; stroke-width: 4; }
+}
+
+.anomaly-border {
+    animation: pulse-red 1s infinite;
+}
+
+.animate-pulse {
+    animation: alert-pulse 1s infinite;
+}
+
+@keyframes alert-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+#log-container div {
+    border-bottom: 1px solid #2d3436;
+    padding: 2px 0;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.btn-lg {
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-lg:active {
+    transform: scale(0.95);
+}
