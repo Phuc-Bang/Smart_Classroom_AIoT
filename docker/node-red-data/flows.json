@@ -1,0 +1,402 @@
+[
+    {
+        "id": "flow_smart_classroom",
+        "type": "tab",
+        "label": "Smart Classroom Flow",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "Local Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "influxdb_config",
+        "type": "influxdb v2 client",
+        "hostname": "influxdb",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "Smart Classroom InfluxDB",
+        "usetls": false,
+        "tls": "",
+        "org": "aiot",
+        "bucket": "smart_classroom",
+        "token": "smart-classroom-token"
+    },
+    {
+        "id": "ui_tab_main",
+        "type": "ui_tab",
+        "name": "Classroom A203",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "ui_group_sensors",
+        "type": "ui_group",
+        "name": "Sensors Data",
+        "tab": "ui_tab_main",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "ui_group_controls",
+        "type": "ui_group",
+        "name": "Controls",
+        "tab": "ui_tab_main",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "mqtt_in_sensors",
+        "type": "mqtt in",
+        "z": "flow_smart_classroom",
+        "name": "Subscribe Sensors",
+        "topic": "classroom/sensors",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "extract_fields_node"
+            ]
+        ]
+    },
+    {
+        "id": "extract_fields_node",
+        "type": "function",
+        "z": "flow_smart_classroom",
+        "name": "Extract Fields",
+        "func": "// Extract data for InfluxDB\nconst device_id = msg.payload.device_id;\nconst timestamp = msg.payload.timestamp;\n\n// Create fields object for InfluxDB\nconst fields = {\n    temperature: msg.payload.temperature,\n    humidity: msg.payload.humidity,\n    light_intensity: msg.payload.light_intensity,\n    people_count: msg.payload.people_count,\n    power_consumption: msg.payload.power_consumption\n};\n\n// Create tag object\nconst tags = {\n    device_id: device_id\n};\n\n// Message for InfluxDB node\nconst influxMsg = {\n    payload: fields,\n    tags: tags,\n    measurement: \"environment\"\n};\n\n// Messages for Dashboard nodes\nconst tempMsg = { payload: msg.payload.temperature };\nconst humMsg = { payload: msg.payload.humidity };\nconst lightMsg = { payload: msg.payload.light_intensity };\nconst peopleMsg = { payload: \"People: \" + msg.payload.people_count };\nconst acMsg = { payload: \"AC: \" + msg.payload.ac_state };\nconst lightStateMsg = { payload: \"Light: \" + msg.payload.light_state };\n\nreturn [influxMsg, tempMsg, humMsg, lightMsg, peopleMsg, acMsg, lightStateMsg];",
+        "outputs": 7,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 240,
+        "wires": [
+            [
+                "influx_out_node"
+            ],
+            [
+                "ui_temp_gauge",
+                "ui_chart_env"
+            ],
+            [
+                "ui_hum_gauge",
+                "ui_chart_env"
+            ],
+            [
+                "ui_light_gauge"
+            ],
+            [
+                "ui_people_text"
+            ],
+            [
+                "ui_ac_text"
+            ],
+            [
+                "ui_light_state_text"
+            ]
+        ]
+    },
+    {
+        "id": "influx_out_node",
+        "type": "influxdb out",
+        "z": "flow_smart_classroom",
+        "name": "Write to InfluxDB",
+        "influxdb": "influxdb_config",
+        "bucket": "smart_classroom",
+        "org": "aiot",
+        "measurement": "environment",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18FluxV20": "",
+        "orgV18FluxV20": "aiot",
+        "bucketV18FluxV20": "smart_classroom",
+        "x": 650,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "ui_temp_gauge",
+        "type": "ui_gauge",
+        "z": "flow_smart_classroom",
+        "name": "Temperature",
+        "group": "ui_group_sensors",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperature",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 650,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "ui_hum_gauge",
+        "type": "ui_gauge",
+        "z": "flow_smart_classroom",
+        "name": "Humidity",
+        "group": "ui_group_sensors",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Humidity",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 640,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "ui_light_gauge",
+        "type": "ui_gauge",
+        "z": "flow_smart_classroom",
+        "name": "Light",
+        "group": "ui_group_sensors",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Light Intensity",
+        "label": "lux",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "1000",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 630,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "ui_people_text",
+        "type": "ui_text",
+        "z": "flow_smart_classroom",
+        "group": "ui_group_sensors",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "People Count",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 660,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "ui_ac_text",
+        "type": "ui_text",
+        "z": "flow_smart_classroom",
+        "group": "ui_group_sensors",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "name": "AC State",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 640,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "ui_light_state_text",
+        "type": "ui_text",
+        "z": "flow_smart_classroom",
+        "group": "ui_group_sensors",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "name": "Light State",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 650,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "ui_chart_env",
+        "type": "ui_chart",
+        "z": "flow_smart_classroom",
+        "name": "Temp/Hum Chart",
+        "group": "ui_group_sensors",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "label": "Environmental History",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 670,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ui_btn_toggle_ac",
+        "type": "ui_button",
+        "z": "flow_smart_classroom",
+        "name": "Toggle AC",
+        "group": "ui_group_controls",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Toggle AC",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{\"device\": \"ac\", \"command\": \"TOGGLE\"}",
+        "payloadType": "json",
+        "topic": "classroom/control",
+        "topicType": "str",
+        "x": 150,
+        "y": 420,
+        "wires": [
+            [
+                "mqtt_out_control"
+            ]
+        ]
+    },
+    {
+        "id": "ui_btn_toggle_light",
+        "type": "ui_button",
+        "z": "flow_smart_classroom",
+        "name": "Toggle Light",
+        "group": "ui_group_controls",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Toggle Light",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "{\"device\": \"light\", \"command\": \"TOGGLE\"}",
+        "payloadType": "json",
+        "topic": "classroom/control",
+        "topicType": "str",
+        "x": 150,
+        "y": 480,
+        "wires": [
+            [
+                "mqtt_out_control"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_out_control",
+        "type": "mqtt out",
+        "z": "flow_smart_classroom",
+        "name": "Publish Control",
+        "topic": "classroom/control",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_broker_local",
+        "x": 420,
+        "y": 450,
+        "wires": []
+    }
+]
