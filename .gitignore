@@ -151,5 +151,5 @@ cython_debug/
 .vscode/
 
 # Project specific
-smart_classroom_aiot/ai/model.pkl
-smart_classroom_aiot/ai/feature_names.pkl
+ai/model.pkl
+ai/feature_names.pkl
